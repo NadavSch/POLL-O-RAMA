@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 # The team name should be in uppercase and constant
-TEAM_NAME = "ctrlaltdefeat"
+TEAM_NAME = " TEAM NAME "
 
 # Dictionary to store team data and phone numbers
 team_data = {}
