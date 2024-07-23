@@ -1,7 +1,7 @@
 import requests
 
 API_BASE_URL = "http://hackathons.masterschool.com:3030"
-TEAM_NAME = "ctrlaltdefeat"
+TEAM_NAME = "CTRL_ALT_DEFEAT"
 
 # Dictionary of surveys with one question each
 SURVEYS = {
@@ -12,7 +12,6 @@ SURVEYS = {
 
 # Dictionary to store user data and survey responses
 user_data = {}
-
 
 def register_number(phone_number):
     """
@@ -35,7 +34,6 @@ def register_number(phone_number):
         return True
     return False
 
-
 def send_sms(phone_number, message):
     """
     Send an SMS message to a phone number.
@@ -52,7 +50,6 @@ def send_sms(phone_number, message):
     response = requests.post(endpoint, json=data)
     return response.status_code == 200
 
-
 def get_messages():
     """
     Retrieve all messages for the team from the API.
@@ -65,7 +62,6 @@ def get_messages():
     if response.status_code == 200:
         return response.json()
     return []
-
 
 def process_message(phone_number, message):
     """
@@ -97,7 +93,6 @@ def process_message(phone_number, message):
     else:
         return ("Invalid response. Please reply with '1', '2', or '3' to start a survey, or A, B, C, or D to answer a "
                 "question.")
-
 
 def get_results(phone_number):
     """
