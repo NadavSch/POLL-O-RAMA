@@ -1,40 +1,52 @@
-import error_html
-import main_web_page
-import success_html
-from flask import Flask, request
-import requests
+from flask import Flask, request, send_file
+from config import TEAM_NAME
+import templates.error_html
+import templates.main_web_page
+import templates.success_html
+import sms_api
 
 app = Flask(__name__)
 
-# The team name should be in uppercase and constant
-TEAM_NAME = "CTRL_ALT_DEFEAT"
-
-# Dictionary to store team data and phone numbers
-team_data = {}
 
 # Main route to display the form
 @app.route('/')
 def index():
-    return main_web_page.web_HTML.format(team_name=TEAM_NAME)
+  return templates.main_web_page.web_HTML.format(team_name=TEAM_NAME)
+
 
 # Route to handle the form and save data to the dictionary
 @app.route('/register', methods=['POST'])
 def register():
-    phone_number = request.form['phoneNumber']
+  """
+    Handle form submission to register a phone number and send an initial SMS.
+    """
+  phone_number = request.form['phoneNumber']
+  response = sms_api.register_number(phone_number)
+  if response:
+    return templates.success_html.success_result
+  else:
+    return templates.error_html.error_result
 
-    # Save data to the dictionary
-    team_data[TEAM_NAME] = phone_number
 
-    # Send data to the specified URL
-    response = requests.post(
-        'http://hackathons.masterschool.com:3030/team/registerNumber',
-        json={"teamName": TEAM_NAME, "phoneNumber": phone_number}
-    )
+@app.route('/results/<phone_number>')
+def results(phone_number):
+  """
+        Display survey results for a specific phone number.
+        """
+  responses = sms_api.get_results(phone_number)
+  if responses:
+    return f"Your results: {responses}"
+  return "No data."
 
-    if response.status_code == 200:
-        return success_html.success_result
-    else:
-        return error_html.error_result
+
+@app.route('/chart')
+def chart():
+  """
+        Generate and serve the pie chart image.
+        """
+  chart_path = sms_api.generate_pie_chart()
+  return send_file(chart_path, mimetype='image/png')
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+  app.run(debug=True)

@@ -1,17 +1,18 @@
 import requests
+import matplotlib.pyplot as plt
+from config import API_BASE_URL, TEAM_NAME
 
-API_BASE_URL = "http://hackathons.masterschool.com:3030"
-TEAM_NAME = "CTRL_ALT_DEFEAT"
 
 # Dictionary of surveys with one question each
 SURVEYS = {
-    "1": "What is your age group? Reply with A (18-25), B (26-35), C (36-45), D (46+)",
-    "2": "How often do you exercise? A (Daily), B (2-3 times a week), C (Once a week), D (Rarely)",
-    "3": "How would you rate your overall health? A (Excellent), B (Good), C (Fair), D (Poor)"
+    "1": "How old are you? Reply with a number:\n1. 0-12\n2. 13-25\n3. 26-60\n4. 61+",
+    "2": "How often do you exercise? Reply with a number:\n1. Daily\n2. 2-3 times a week\n3. Once a week\n4. Rarely",
+    "3": "How would you rate your overall health? Reply with a number:\n1. Excellent\n2. Good\n3. Fair\n4. Poor"
 }
 
 # Dictionary to store user data and survey responses
 user_data = {}
+
 
 def register_number(phone_number):
     """
@@ -34,6 +35,7 @@ def register_number(phone_number):
         return True
     return False
 
+
 def send_sms(phone_number, message):
     """
     Send an SMS message to a phone number.
@@ -50,6 +52,7 @@ def send_sms(phone_number, message):
     response = requests.post(endpoint, json=data)
     return response.status_code == 200
 
+
 def get_messages():
     """
     Retrieve all messages for the team from the API.
@@ -62,6 +65,7 @@ def get_messages():
     if response.status_code == 200:
         return response.json()
     return []
+
 
 def process_message(phone_number, message):
     """
@@ -94,6 +98,7 @@ def process_message(phone_number, message):
         return ("Invalid response. Please reply with '1', '2', or '3' to start a survey, or A, B, C, or D to answer a "
                 "question.")
 
+
 def get_results(phone_number):
     """
     Get the results of all surveys taken by a user.
@@ -107,3 +112,24 @@ def get_results(phone_number):
     if phone_number in user_data:
         return user_data[phone_number]["responses"]
     return None
+
+
+def generate_pie_chart():
+    """
+    Generate a pie chart based on user responses.
+
+    Returns:
+    str: Path to the saved pie chart image.
+    """
+    age_responses = [user_data[user]["responses"].get(SURVEYS["1"], None) for user in user_data]
+    age_responses = [resp for resp in age_responses if resp]
+
+    labels = ['0-12', '13-25', '26-60', '61+']
+    sizes = [age_responses.count(str(i)) for i in range(1, 5)]
+
+    fig1, ax1 = plt.subplots()
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+    ax1.axis('equal')
+
+    plt.savefig('static/images/pie_chart.png')
+    return 'static/images/pie_chart.png'
