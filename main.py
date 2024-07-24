@@ -1,16 +1,20 @@
-from flask import Flask, request, render_template_string, jsonify
+# main.py
+
+from flask import Flask, request, render_template_string, redirect, url_for, session, jsonify
 import api
 import error_html
 import main_web_page
 import success_html
 import results_html
+import admin_template
 import logging
-import threading
-import time
+import os
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # For session management
 
 TEAM_NAME = "CTRL_ALT_DEFEAT"
+ADMIN_PASSWORD = "hackathon2024"  # Simple password for the hackathon
 
 logging.basicConfig(level=logging.INFO)
 
@@ -47,31 +51,54 @@ def results():
     return render_template_string(results_html.results_template, results=overall_results)
 
 
-@app.route('/test_sms/<phone_number>')
-def test_sms(phone_number):
-    result = api.send_sms(phone_number, "This is a test message from the health survey app.")
-    if result:
-        return "Test SMS sent successfully. Please check your phone."
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_panel():
+    if request.method == 'POST':
+        password = request.form['password']
+        if password == ADMIN_PASSWORD:
+            session['authenticated'] = True
+            registered_users = len(api.get_user_data())
+            return render_template_string(admin_template.admin_template, authenticated=True,
+                                          registered_users=registered_users)
+        else:
+            return render_template_string(admin_template.admin_template, error="Incorrect password",
+                                          authenticated=False)
+
+    authenticated = session.get('authenticated', False)
+    registered_users = len(api.get_user_data()) if authenticated else 0
+    message = request.args.get('message')
+    error = request.args.get('error')
+
+    return render_template_string(admin_template.admin_template,
+                                  authenticated=authenticated,
+                                  registered_users=registered_users,
+                                  message=message,
+                                  error=error)
+
+
+@app.route('/start_survey', methods=['POST'])
+def start_survey():
+    if 'authenticated' in session and session['authenticated']:
+        api.start_survey()
+        return redirect(url_for('admin_panel', message="Survey started for all registered users"))
     else:
-        return "Failed to send test SMS. Please check the logs for more information."
+        return redirect(url_for('admin_panel', error="Authentication required"))
 
 
-@app.route('/process_messages', methods=['GET'])
+@app.route('/process_messages', methods=['POST'])
 def process_messages():
-    api.fetch_and_process_messages()
-    return "Messages processed", 200
+    if 'authenticated' in session and session['authenticated']:
+        result = api.trigger_process_messages()
+        return redirect(url_for('admin_panel', message=result))
+    else:
+        return redirect(url_for('admin_panel', error="Authentication required"))
 
 
-def message_polling():
-    while True:
-        api.fetch_and_process_messages()
-        time.sleep(60)  # Poll every 10 seconds
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    return redirect(url_for('admin_panel'))
 
 
 if __name__ == '__main__':
-    # Start the message polling in a separate thread
-    polling_thread = threading.Thread(target=message_polling)
-    polling_thread.daemon = True
-    polling_thread.start()
-
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True)
