@@ -1,6 +1,4 @@
-# main.py
-
-from flask import Flask, request, render_template_string, redirect, url_for, session, jsonify
+from flask import Flask, request, render_template_string, redirect, url_for, session, jsonify, send_file
 import api
 import error_html
 import main_web_page
@@ -90,6 +88,19 @@ def process_messages():
     if 'authenticated' in session and session['authenticated']:
         result = api.trigger_process_messages()
         return redirect(url_for('admin_panel', message=result))
+    else:
+        return redirect(url_for('admin_panel', error="Authentication required"))
+
+
+@app.route('/download_data')
+def download_data():
+    if 'authenticated' in session and session['authenticated']:
+        directory = os.path.dirname(os.path.abspath(__file__))
+        files = [f for f in os.listdir(directory) if f.startswith('survey_data_') and f.endswith('.json')]
+        if not files:
+            return "No data files available", 404
+        latest_file = max(files)
+        return send_file(os.path.join(directory, latest_file), as_attachment=True)
     else:
         return redirect(url_for('admin_panel', error="Authentication required"))
 

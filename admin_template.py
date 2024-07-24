@@ -26,6 +26,7 @@ admin_template = """
         h1 {
             color: #333;
             text-align: center;
+            margin-top: 0;
         }
         .info {
             background-color: #e7f3fe;
@@ -40,15 +41,19 @@ admin_template = """
             padding: 15px 32px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
+            display: block;
             font-size: 16px;
-            margin: 4px 2px;
+            margin: 10px 0;
             cursor: pointer;
             border-radius: 5px;
             width: 100%;
+            box-sizing: border-box;
         }
         .button.process {
             background-color: #2196F3;
+        }
+        .button.download {
+            background-color: #FF9800;
         }
         .button.logout {
             background-color: #f44336;
@@ -97,6 +102,7 @@ admin_template = """
             <form action="{{ url_for('process_messages') }}" method="post">
                 <input type="submit" value="Process Messages" class="button process">
             </form>
+            <a href="{{ url_for('download_data') }}" class="button download">Download Latest Data</a>
             <a href="{{ url_for('logout') }}" class="button logout">Logout</a>
         {% endif %}
     </div>

@@ -1,7 +1,6 @@
-# api.py
-
 import requests
 import logging
+import json
 from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +21,14 @@ user_data = {}
 
 def get_user_data():
     return user_data
+
+
+def save_data_to_file():
+    data_to_save = get_user_data()
+    filename = f"survey_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(filename, 'w') as f:
+        json.dump(data_to_save, f, indent=2)
+    return filename
 
 
 def register_number(name, phone_number):
@@ -158,8 +165,7 @@ def get_results():
 
 def start_survey():
     all_questions = "\n".join(SURVEY)
-    survey_message = (f"The health survey is starting now. Please answer all questions in one message, separating your "
-                      f"answers with commas. For example: A,B,C\n\n{all_questions}")
+    survey_message = f"The health survey is starting now. Please answer all questions in one message, separating your answers with commas. For example: A,B,C\n\n{all_questions}"
 
     for phone_number, user in user_data.items():
         user['survey_started'] = True
@@ -213,4 +219,6 @@ def trigger_process_messages():
         logging.error(f"An error occurred while fetching messages: {str(e)}")
         logging.exception("Exception details:")
 
-    return "Messages processed"
+    # Save data to file after processing
+    filename = save_data_to_file()
+    return f"Messages processed and data saved to {filename}"
