@@ -1,10 +1,11 @@
 import requests
 import time
+import config
 
-API_BASE_URL = "http://hackathons.masterschool.com:3030"
-TEAM_NAME = "CTRL_ALT_DELETE"
-SENDER = "CTRL_ALT_DELETE"
-TEST_PHONE_NUMBER = "+4917670509437"  # Enter hier the number that you want to test the API with
+API_BASE_URL = config.API_BASE_URL
+TEAM_NAME = config.TEAM_NAME
+SENDER = config.TEAM_NAME
+TEST_PHONE_NUMBER = config.PHONE_NUMBER
 
 
 def register_number(phone_number):
@@ -46,8 +47,8 @@ if register_number(TEST_PHONE_NUMBER):
     print(f"\nStep 2: Sending test SMS to {TEST_PHONE_NUMBER}...")
     if send_sms(TEST_PHONE_NUMBER, "This is a test message. Please reply with 'TEST'"):
         print("\nSMS sent successfully. Please check the phone and reply to the message.")
-        print("\nWaiting for10seconds to allow time for a reply...")
-        time.sleep(10)
+        print("\nWaiting for 60 seconds to allow time for a reply...")
+        time.sleep(60)
 
         print("\nStep 3: Checking for messages...")
         messages = get_messages()

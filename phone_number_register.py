@@ -1,9 +1,10 @@
 import requests
 import json
+import config
 
-API_BASE_URL = "http://hackathons.masterschool.com:3030"
-TEAM_NAME = "CTRL_ALT_DEFEAT"
-PHONE_NUMBER = "4917670509437"
+API_BASE_URL = config.API_BASE_URL
+TEAM_NAME = config.TEAM_NAME
+PHONE_NUMBER = config.PHONE_NUMBER
 
 def register_team():
     url = f"{API_BASE_URL}/team/registerNumber"
