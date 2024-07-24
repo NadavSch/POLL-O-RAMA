@@ -19,7 +19,7 @@ def register_number(phone_number):
 
 def send_sms(phone_number, message):
     endpoint = f"{API_BASE_URL}/sms/send"
-    data = {"phoneNumber": phone_number, "message": message, "sender": SENDER}
+    data = {"phoneNumber": phone_number, "message": message, "sender": TEAM_NAME}
     response = requests.post(endpoint, json=data)
     print(f"Send SMS response: {response.status_code}")
     print(response.text)
@@ -33,8 +33,10 @@ def get_messages():
     if response.status_code == 200:
         messages = response.json()
         print(f"Received {len(messages)} messages:")
-        for msg in messages:
-            print(f"From: {msg['sender']}, Message: {msg['message']}, Received at: {msg['receivedAt']}")
+        for message_group in messages:
+          for phone, msgs in message_group.items():
+            for msg in msgs:
+              print(f"From: {phone}, Message: {msg['text']}, Received at: {msg['receivedAt']}")
         return messages
     else:
         print("Failed to retrieve messages")
@@ -54,8 +56,8 @@ if register_number(TEST_PHONE_NUMBER):
         messages = get_messages()
 
         # Check if we received a reply
-        reply = next((msg for msg in messages if
-                      msg['sender'] == TEST_PHONE_NUMBER and msg['message'].strip().upper() == 'TEST'), None)
+        reply = next((msg for message_group in messages for phone, msgs in message_group.items()
+                      for msg in msgs if phone == TEST_PHONE_NUMBER and msg['text'].strip().upper() == 'TEST'), None)
 
         if reply:
             print(f"\nSuccess! Received reply: {reply['message']}")
