@@ -1,5 +1,3 @@
-# admin_template.py
-
 admin_template = """
 <!DOCTYPE html>
 <html lang="en">
@@ -58,6 +56,9 @@ admin_template = """
         .button.logout {
             background-color: #f44336;
         }
+        .button.view-results {
+            background-color: #9C27B0;
+        }
         .error {
             color: red;
             text-align: center;
@@ -103,6 +104,7 @@ admin_template = """
                 <input type="submit" value="Process Messages" class="button process">
             </form>
             <a href="{{ url_for('download_data') }}" class="button download">Download Latest Data</a>
+            <a href="{{ url_for('view_results') }}" class="button view-results">View Results</a>
             <a href="{{ url_for('logout') }}" class="button logout">Logout</a>
         {% endif %}
     </div>

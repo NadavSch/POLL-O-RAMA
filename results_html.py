@@ -12,6 +12,12 @@ results_html = '''
 
       function drawCharts() {
         var aggregatedData = JSON.parse('{{ aggregated_data | safe }}');
+        console.log("Aggregated data:", aggregatedData);  // Debug log
+
+        if (Object.keys(aggregatedData).length === 0) {
+          document.body.innerHTML = '<h1>No survey data available</h1>';
+          return;
+        }
 
         for (let [ageGroup, data] of Object.entries(aggregatedData)) {
           // Data for the exercise pie chart
