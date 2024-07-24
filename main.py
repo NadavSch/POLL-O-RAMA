@@ -40,7 +40,8 @@ def unregister():
         return jsonify({"status": "success", "message": "Phone number unregistered successfully"}), 200
     else:
         return jsonify({"status": "error",
-                        "message": "Failed to unregister phone number. It may not be registered or associated with this team."}), 400
+                        "message": "Failed to unregister phone number. It may not be registered or associated with "
+                                   "this team."}), 400
 
 
 @app.route('/results')
