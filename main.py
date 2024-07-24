@@ -1,52 +1,77 @@
-from flask import Flask, request, send_file
-from config import TEAM_NAME
-import templates.error_html
-import templates.main_web_page
-import templates.success_html
-import sms_api
+from flask import Flask, request, render_template_string, jsonify
+import api
+import error_html
+import main_web_page
+import success_html
+import results_html
+import logging
+import threading
+import time
 
 app = Flask(__name__)
 
+TEAM_NAME = "CTRL_ALT_DEFEAT"
 
-# Main route to display the form
+logging.basicConfig(level=logging.INFO)
+
+
 @app.route('/')
 def index():
-  return templates.main_web_page.web_HTML.format(team_name=TEAM_NAME)
+    return main_web_page.web_HTML.format(team_name=TEAM_NAME)
 
 
-# Route to handle the form and save data to the dictionary
 @app.route('/register', methods=['POST'])
 def register():
-  """
-    Handle form submission to register a phone number and send an initial SMS.
-    """
-  phone_number = request.form['phoneNumber']
-  response = sms_api.register_number(phone_number)
-  if response:
-    return templates.success_html.success_result
-  else:
-    return templates.error_html.error_result
+    name = request.form['name']
+    phone_number = request.form['phoneNumber']
+    if api.register_number(name, phone_number):
+        return render_template_string(success_html.success_result)
+    else:
+        error_message = "Failed to register. Please check your phone number and try again."
+        return render_template_string(error_html.error_result, error_message=error_message)
 
 
-@app.route('/results/<phone_number>')
-def results(phone_number):
-  """
-        Display survey results for a specific phone number.
-        """
-  responses = sms_api.get_results(phone_number)
-  if responses:
-    return f"Your results: {responses}"
-  return "No data."
+@app.route('/unregister', methods=['POST'])
+def unregister():
+    phone_number = request.form['phoneNumber']
+    if api.unregister_number(phone_number):
+        return jsonify({"status": "success", "message": "Phone number unregistered successfully"}), 200
+    else:
+        return jsonify({"status": "error",
+                        "message": "Failed to unregister phone number. It may not be registered or associated with this team."}), 400
 
 
-@app.route('/chart')
-def chart():
-  """
-        Generate and serve the pie chart image.
-        """
-  chart_path = sms_api.generate_pie_chart()
-  return send_file(chart_path, mimetype='image/png')
+@app.route('/results')
+def results():
+    overall_results = api.get_results()
+    return render_template_string(results_html.results_template, results=overall_results)
+
+
+@app.route('/test_sms/<phone_number>')
+def test_sms(phone_number):
+    result = api.send_sms(phone_number, "This is a test message from the health survey app.")
+    if result:
+        return "Test SMS sent successfully. Please check your phone."
+    else:
+        return "Failed to send test SMS. Please check the logs for more information."
+
+
+@app.route('/process_messages', methods=['GET'])
+def process_messages():
+    api.fetch_and_process_messages()
+    return "Messages processed", 200
+
+
+def message_polling():
+    while True:
+        api.fetch_and_process_messages()
+        time.sleep(60)  # Poll every 10 seconds
 
 
 if __name__ == '__main__':
-  app.run(debug=True)
+    # Start the message polling in a separate thread
+    polling_thread = threading.Thread(target=message_polling)
+    polling_thread.daemon = True
+    polling_thread.start()
+
+    app.run(debug=True, use_reloader=False)
