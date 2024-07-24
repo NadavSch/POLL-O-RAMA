@@ -1,7 +1,10 @@
 import requests
+import config
+#API_BASE_URL = "http://hackathons.masterschool.com:3030"
+#TEAM_NAME = "CTRL_ALT_DEFEAT"
 
-API_BASE_URL = "http://hackathons.masterschool.com:3030"
-TEAM_NAME = "CTRL_ALT_DEFEAT"
+API_BASE_URL = config.API_BASE_URL
+TEAM_NAME = config.TEAM_NAME
 
 # Dictionary of surveys with one question each
 SURVEYS = {
